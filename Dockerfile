@@ -8,9 +8,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o código da aplicação
-COPY main.py api_call.py batch_weather.py municipios_reader.py .
-COPY municipios.csv .
+# Copia o código da aplicação (destino com / para múltiplos arquivos)
+COPY main.py api_call.py batch_weather.py municipios_reader.py ./
+COPY municipios.csv ./
 
 # Cloud Run expõe a porta via variável PORT (padrão 8080)
 ENV PORT=8080
