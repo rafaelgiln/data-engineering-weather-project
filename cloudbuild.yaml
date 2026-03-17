@@ -1,0 +1,37 @@
+# Build e deploy para Cloud Run - contexto na raiz do repositório
+steps:
+  # 1. Build da imagem Docker (Dockerfile e contexto na raiz)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/weather-service:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/weather-service:latest'
+      - '.'
+
+  # 2. Push da imagem para o Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/weather-service:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/weather-service:latest']
+
+  # 3. Deploy no Cloud Run (ajuste --region se precisar)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'weather-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/weather-service:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+images:
+  - 'gcr.io/$PROJECT_ID/weather-service:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/weather-service:latest'
