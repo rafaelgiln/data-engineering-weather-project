@@ -9,6 +9,7 @@ from google.cloud import storage
 from flask import Flask, Request, jsonify, request as flask_request
 
 from batch_weather import get_weather_for_first_n_municipios
+from silver_batch import bronze_to_silver_http
 
 
 def _upload_to_gcs(
@@ -102,4 +103,12 @@ def fetch_weather_route():
     Reutiliza a mesma lógica da função fetch_weather_http.
     """
     return fetch_weather_http(flask_request)
+
+
+@app.route("/bronze-to-silver", methods=["POST", "GET"])
+def bronze_to_silver_route():
+    """
+    Endpoint para executar conversão de bronze para silver.
+    """
+    return bronze_to_silver_http(flask_request)
 
