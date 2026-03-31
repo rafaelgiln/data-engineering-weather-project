@@ -71,6 +71,7 @@ def _convert_bronze_json_to_silver_parquet(
     silver_bucket_name: str,
     bronze_prefix: str = "weather_batch/",
     silver_prefix: str = "weather_silver/",
+    max_files: int | None = None,
 ) -> Dict[str, Any]:
     """
     Lê JSONs da bronze no GCS, converte para Parquet e grava na silver.
@@ -81,6 +82,8 @@ def _convert_bronze_json_to_silver_parquet(
 
     blobs = list(client.list_blobs(bronze_bucket, prefix=bronze_prefix))
     json_blobs = [blob for blob in blobs if blob.name.endswith(".json")]
+    if max_files is not None and max_files > 0:
+        json_blobs = json_blobs[:max_files]
 
     if not json_blobs:
         return {
@@ -145,6 +148,7 @@ def bronze_to_silver_http(request: Request):
     silver_bucket_name = os.getenv("SILVER_BUCKET_NAME", "weather-silver-python")
     bronze_prefix = request.args.get("bronze_prefix", "weather_batch/")
     silver_prefix = request.args.get("silver_prefix", "weather_silver/")
+    max_files_param = request.args.get("max_files")
 
     if not bronze_bucket_name:
         return (
@@ -158,11 +162,19 @@ def bronze_to_silver_http(request: Request):
         )
 
     try:
+        max_files = int(max_files_param) if max_files_param else 5
+        if max_files <= 0:
+            max_files = 5
+    except ValueError:
+        max_files = 5
+
+    try:
         result = _convert_bronze_json_to_silver_parquet(
             bronze_bucket_name=bronze_bucket_name,
             silver_bucket_name=silver_bucket_name,
             bronze_prefix=bronze_prefix,
             silver_prefix=silver_prefix,
+            max_files=max_files,
         )
         return jsonify(result)
     except Exception as exc:
