@@ -80,10 +80,13 @@ def _convert_bronze_json_to_silver_parquet(
     bronze_bucket = client.bucket(bronze_bucket_name)
     silver_bucket = client.bucket(silver_bucket_name)
 
-    blobs = list(client.list_blobs(bronze_bucket, prefix=bronze_prefix))
-    json_blobs = [blob for blob in blobs if blob.name.endswith(".json")]
-    if max_files is not None and max_files > 0:
-        json_blobs = json_blobs[:max_files]
+    json_blobs = []
+    for blob in client.list_blobs(bronze_bucket, prefix=bronze_prefix):
+        if not blob.name.endswith(".json"):
+            continue
+        json_blobs.append(blob)
+        if max_files is not None and max_files > 0 and len(json_blobs) >= max_files:
+            break
 
     if not json_blobs:
         return {
@@ -99,7 +102,7 @@ def _convert_bronze_json_to_silver_parquet(
     files_processed = 0
 
     for blob in json_blobs:
-        content = blob.download_as_text(encoding="utf-8")
+        content = blob.download_as_text(encoding="utf-8", timeout=120)
         payload = json.loads(content)
         items = payload.get("items", [])
 
