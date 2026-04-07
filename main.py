@@ -10,6 +10,7 @@ from google.cloud import storage
 from flask import Flask, Request, jsonify, request as flask_request
 
 from batch_weather import get_weather_for_first_n_municipios
+from gold_batch import silver_to_gold_http
 from silver_batch import bronze_to_silver_http
 
 
@@ -168,4 +169,12 @@ def bronze_to_silver_route():
     Endpoint para executar conversão de bronze para silver.
     """
     return bronze_to_silver_http(flask_request)
+
+
+@app.route("/silver-to-gold", methods=["POST", "GET"])
+def silver_to_gold_route():
+    """
+    Endpoint para executar conversão de silver para gold.
+    """
+    return silver_to_gold_http(flask_request)
 

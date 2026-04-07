@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia o código da aplicação (destino com / para múltiplos arquivos)
-COPY main.py api_call.py batch_weather.py municipios_reader.py silver_batch.py ./
+COPY main.py api_call.py batch_weather.py municipios_reader.py silver_batch.py gold_batch.py ./
 COPY municipios.csv ./
 
 # Cloud Run expõe a porta via variável PORT (padrão 8080)
